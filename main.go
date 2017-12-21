@@ -4,61 +4,82 @@ import (
     "github.com/ChimeraCoder/anaconda"
     "math/rand"
     "time"
-    "net/url"
-    "strconv"
-    "github.com/robfig/cron"
+    "fmt"
+    "log"
 )
 
-var stopper = make(chan bool)
-
 func main() {
-    //var id int64 = 4001665694
+    fmt.Println("Program initiated...")
     api := createApi()
-    c := cron.New()
-    c.AddFunc("@daily", func() {follow(api, 884680626334334976, 150)})
-    c.AddFunc("0 0 12 * * *", func() {c.AddFunc("@daily", func() {remove(api)})})
-    c.Start()
-    <- stopper
+    go remove(api)
+    follow(api, 842666581264019456, 150)
 }
 
 /*
 follow automatically
  */
 func follow(api *anaconda.TwitterApi, id int64, max int) {
+    fmt.Println("follow start")
     users, _ := api.GetFollowersUser(id, nil)
     rand.Seed(time.Now().UnixNano())
     for i:=0; i<max; i ++ {
         randomId := users.Ids[rand.Intn(len(users.Ids))]
         _, err := api.FollowUserId(randomId, nil)
         if err != nil {
-            i -= 1
+            log.Println(err)
+        }
+        time.Sleep(1 * time.Second)
+    }
+    fmt.Println("follow finished")
+}
+
+
+func filter(lhs, rhs []int64) []int64 {
+    m := map[int64]int{}
+
+    for _, v := range lhs {
+        if _, ok := m[v]; !ok {
+            m[v] = 1
         }
     }
+
+    for _, v := range rhs {
+        if _, ok := m[v]; ok {
+            m[v] = 2
+        }
+    }
+    var ret []int64
+    for i := range m {
+        if m[i] == 1 {
+            ret = append(ret, i)
+        }
+    }
+    return ret
 }
 
 func remove(api *anaconda.TwitterApi) {
-    f, _ := api.GetFriendsIds(nil)
-    for _, id :=  range f.Ids {
-        if !isFollowMe(api, id) {
-            api.UnfollowUserId(id)
-        }
+    f, err := api.GetFriendsIds(nil)
+    if err != nil {
+        log.Println(err)
     }
-}
 
-func isFollowMe(api *anaconda.TwitterApi, userId int64) bool {
-    v := url.Values{"user_id": {strconv.FormatInt(userId, 10)}}
-    user, _ := api.GetFriendsIds(v)
-    for _, id := range user.Ids {
-        if id == 932137292197593089 {
-            return true
-        }
+    fed, err := api.GetFollowersIds(nil)
+    if err != nil {
+        log.Println(err)
     }
-    return false
+
+    result := filter(f.Ids, fed.Ids)
+    for _, i := range result {
+        api.UnfollowUserId(i)
+    }
+    time.Sleep(1000 * time.Millisecond)
 }
 
 func createApi() *anaconda.TwitterApi {
-    anaconda.SetConsumerKey("3rJOl1ODzm9yZy63FACdg")
-    anaconda.SetConsumerSecret("5jPoQ5kQvMJFDYRNE8bQ4rHuds4xJqhvgNJM4awaE8")
-    api := anaconda.NewTwitterApi("932137292197593089-kylZz2L7TmKdn6Tdzuf6yH9uFEs7s2Y", "wcmU6LH10C1sEChz9X3jexjDaP5UIoTKfRqQVZpGmwFye")
+    anaconda.SetConsumerKey("Qncu5JNYWcpLbMhNvdFE1d1pY")//3rJOl1ODzm9yZy63FACdg
+    anaconda.SetConsumerSecret("RGYMI223aKL3x0jTbZW2zhasEPpxMAncOGh8K4pQbZEvw2AQld")//5jPoQ5kQvMJFDYRNE8bQ4rHuds4xJqhvgNJM4awaE8
+    api := anaconda.NewTwitterApi("932137292197593089-9St7XW86dtw1vV66tKxvQcHgXTN5IRf", "Q5dIs80YLz0rLODFqh02JcGy5M3Wo8SKrPp0os9Lj46FW")
     return api
+    //932137292197593089-kylZz2L7TmKdn6Tdzuf6yH9uFEs7s2Y
+    //wcmU6LH10C1sEChz9X3jexjDaP5UIoTKfRqQVZpGmwFye
 }
