@@ -11,8 +11,8 @@ import (
 func main() {
     fmt.Println("Program initiated...")
     api := createApi()
-    go remove(api)
-    follow(api, 842666581264019456, 150)
+    remove(api)
+    follow(api, 822011433470738432, 150)
 }
 
 /*
@@ -24,6 +24,7 @@ func follow(api *anaconda.TwitterApi, id int64, max int) {
     rand.Seed(time.Now().UnixNano())
     for i:=0; i<max; i ++ {
         randomId := users.Ids[rand.Intn(len(users.Ids))]
+
         _, err := api.FollowUserId(randomId, nil)
         if err != nil {
             log.Println(err)
@@ -33,6 +34,23 @@ func follow(api *anaconda.TwitterApi, id int64, max int) {
     fmt.Println("follow finished")
 }
 
+func remove(api *anaconda.TwitterApi) {
+    f, err := api.GetFriendsIds(nil)
+    if err != nil {
+        log.Println(err)
+    }
+
+    fed, err := api.GetFollowersIds(nil)
+    if err != nil {
+        log.Println(err)
+    }
+
+    result := filter(f.Ids, fed.Ids)
+    for _, i := range result {
+        api.UnfollowUserId(i)
+    }
+    time.Sleep(1000 * time.Millisecond)
+}
 
 func filter(lhs, rhs []int64) []int64 {
     m := map[int64]int{}
@@ -57,29 +75,9 @@ func filter(lhs, rhs []int64) []int64 {
     return ret
 }
 
-func remove(api *anaconda.TwitterApi) {
-    f, err := api.GetFriendsIds(nil)
-    if err != nil {
-        log.Println(err)
-    }
-
-    fed, err := api.GetFollowersIds(nil)
-    if err != nil {
-        log.Println(err)
-    }
-
-    result := filter(f.Ids, fed.Ids)
-    for _, i := range result {
-        api.UnfollowUserId(i)
-    }
-    time.Sleep(1000 * time.Millisecond)
-}
-
 func createApi() *anaconda.TwitterApi {
-    anaconda.SetConsumerKey("Qncu5JNYWcpLbMhNvdFE1d1pY")//3rJOl1ODzm9yZy63FACdg
-    anaconda.SetConsumerSecret("RGYMI223aKL3x0jTbZW2zhasEPpxMAncOGh8K4pQbZEvw2AQld")//5jPoQ5kQvMJFDYRNE8bQ4rHuds4xJqhvgNJM4awaE8
-    api := anaconda.NewTwitterApi("932137292197593089-9St7XW86dtw1vV66tKxvQcHgXTN5IRf", "Q5dIs80YLz0rLODFqh02JcGy5M3Wo8SKrPp0os9Lj46FW")
+    anaconda.SetConsumerKey("YOUR_CONSUMER_KEY")
+    anaconda.SetConsumerSecret("YOUR_CONSUMER_KEY")
+    api := anaconda.NewTwitterApi("YOUR_ACCESS_TOKEN", "YOUR_ACCESS_SECRET")
     return api
-    //932137292197593089-kylZz2L7TmKdn6Tdzuf6yH9uFEs7s2Y
-    //wcmU6LH10C1sEChz9X3jexjDaP5UIoTKfRqQVZpGmwFye
 }
