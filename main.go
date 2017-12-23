@@ -29,7 +29,7 @@ func follow(api *anaconda.TwitterApi, id int64, max int) {
         if err != nil {
             log.Println(err)
         }
-        time.Sleep(1 * time.Second)
+        time.Sleep(1000 * time.Millisecond)
     }
     fmt.Println("follow finished")
 }
@@ -48,8 +48,8 @@ func remove(api *anaconda.TwitterApi) {
     result := filter(f.Ids, fed.Ids)
     for _, i := range result {
         api.UnfollowUserId(i)
+        time.Sleep(1000 * time.Millisecond)
     }
-    time.Sleep(1000 * time.Millisecond)
 }
 
 func filter(lhs, rhs []int64) []int64 {
