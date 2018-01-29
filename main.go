@@ -17,7 +17,7 @@ var (
 	api            *anaconda.TwitterApi
 	ConsumerKey          = "CK"
 	ConsumerSecret       = "CS"
-	ID             int64 = 878237273061326848
+	ID             int64 = 2423322 //target ID
 	selfID         int64
 )
 
