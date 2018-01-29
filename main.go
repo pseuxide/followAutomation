@@ -42,7 +42,7 @@ func main() {
 	t := getRemoveTarget()
 	fmt.Printf("[x]片思いの数は%v人です\n", len(t))
 	//remove(t)
-	follow(878237273061326848, 500)
+	follow(ID, 500)
 }
 
 /*
